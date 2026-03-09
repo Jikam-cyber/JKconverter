@@ -1,17 +1,19 @@
-# Image Java
-FROM eclipse-temurin:21-jdk
+# Étape 1 : Build avec Maven
+FROM maven:3.9.9-eclipse-temurin-21 AS builder
 
-# Dossier de travail
 WORKDIR /app
-
-# Copier le projet
 COPY . .
 
-# Compiler le projet
-RUN ./mvnw clean package -DskipTests
+RUN mvn clean package -DskipTests
 
-# Exposer le port
+
+# Étape 2 : Image légère pour exécuter l'application
+FROM eclipse-temurin:21-jdk
+
+WORKDIR /app
+
+COPY --from=builder /app/target/*.jar app.jar
+
 EXPOSE 8080
 
-# Lancer l'application
-CMD ["java", "-jar", "target/jkconverter-1.0-SNAPSHOT.jar"]
+CMD ["java","-jar","app.jar"]
